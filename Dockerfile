@@ -1,3 +1,4 @@
+FROM hairyhenderson/gomplate:v3.6.0-slim AS gomplate
 FROM alpine:3.11.5 AS build-base
 
 RUN apk --no-cache add \
@@ -61,7 +62,7 @@ RUN apk --no-cache add \
     libgcc \
     libgc++
 
-COPY --from=hairyhenderson/gomplate:slim /gomplate /bin/gomplate
+COPY --from=gomplate /gomplate /bin/gomplate
 COPY --from=build-alac /usr/local/lib/libalac.* /usr/local/lib/
 COPY --from=build /usr/local/bin/shairport-sync /usr/local/bin/shairport-sync
 
