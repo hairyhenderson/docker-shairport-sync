@@ -1,5 +1,5 @@
 FROM hairyhenderson/gomplate:v3.6.0-slim AS gomplate
-FROM alpine:3.11.5 AS build-base
+FROM alpine:3.11.6 AS build-base
 
 RUN apk --no-cache add \
     git \
@@ -48,7 +48,7 @@ RUN ./configure \
 RUN make
 RUN make install
 
-FROM alpine:3.11.5 AS shairport
+FROM alpine:3.11.6 AS shairport
 
 RUN apk --no-cache add \
     dbus \
