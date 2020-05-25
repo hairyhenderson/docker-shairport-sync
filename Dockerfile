@@ -1,4 +1,4 @@
-FROM hairyhenderson/gomplate:v3.6.0-slim AS gomplate
+FROM hairyhenderson/gomplate:v3.7.0-slim AS gomplate
 FROM alpine:3.11.6 AS build-base
 
 RUN apk --no-cache add \
