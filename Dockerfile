@@ -1,5 +1,5 @@
 FROM hairyhenderson/gomplate:v3.9.0-slim AS gomplate
-FROM alpine:3.14.0 AS build-base
+FROM alpine:3.13.5 AS build-base
 
 RUN apk --no-cache add \
     git \
@@ -7,13 +7,18 @@ RUN apk --no-cache add \
     autoconf \
     automake \
     libtool \
+    dbus \
+    su-exec \
     alsa-lib-dev \
     libdaemon-dev \
     popt-dev \
-    openssl-dev \
+    mbedtls-dev \
     soxr-dev \
     avahi-dev \
-    libconfig-dev
+    libconfig-dev \
+    libsndfile-dev \
+    mosquitto-dev \
+    xmltoman
 
 FROM build-base AS build-alac
 
@@ -39,31 +44,50 @@ COPY --from=build-alac /usr/local/include /usr/local/include
 RUN ./configure \
         --prefix=/usr/local \
         --with-alsa \
+        --with-dummy \
         --with-pipe \
+        --with-stdout \
         --with-avahi \
-        --with-ssl=openssl \
+        --with-ssl=mbedtls \
         --with-soxr \
+        --sysconfdir=/etc \
+        --with-dbus-interface \
+        --with-mpris-interface \
+        --with-mqtt-client \
         --with-apple-alac \
+        --with-convolution \
         --with-metadata
-RUN make
+RUN make -j $(nproc)
 RUN make install
 
-FROM alpine:3.14.0 AS shairport
+FROM alpine:3.13.5 AS shairport
 
 RUN apk --no-cache add \
-    dbus \
     alsa-lib \
-    libdaemon \
+    dbus \
     popt \
-    libressl \
+    glib \
+    mbedtls \
     soxr \
     avahi \
     libconfig \
+    libsndfile \
+    mosquitto-libs \
+    su-exec \
     libgcc \
     libgc++
 
+RUN addgroup shairport-sync
+RUN adduser -D shairport-sync -G shairport-sync
+RUN addgroup -g 29 docker_audio && addgroup shairport-sync docker_audio
+
 COPY --from=gomplate /gomplate /bin/gomplate
+
 COPY --from=build-alac /usr/local/lib/libalac.* /usr/local/lib/
+
+COPY --from=build /etc/shairport-sync* /etc/
+COPY --from=build /etc/dbus-1/system.d/shairport-sync-dbus.conf /etc/dbus-1/system.d/
+COPY --from=build /etc/dbus-1/system.d/shairport-sync-mpris.conf /etc/dbus-1/system.d/
 COPY --from=build /usr/local/bin/shairport-sync /usr/local/bin/shairport-sync
 
 COPY start.sh /start.sh
