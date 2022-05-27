@@ -1,5 +1,5 @@
 FROM hairyhenderson/gomplate:v3.10.0-slim AS gomplate
-FROM alpine:3.15 AS build-base
+FROM alpine:3.16 AS build-base
 
 RUN apk --no-cache add \
     git \
@@ -60,7 +60,7 @@ RUN ./configure \
 RUN make -j $(nproc)
 RUN make install
 
-FROM alpine:3.15 AS shairport
+FROM alpine:3.16 AS shairport
 
 RUN apk --no-cache add \
     alsa-lib \
